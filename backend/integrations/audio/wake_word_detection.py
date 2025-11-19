@@ -31,7 +31,7 @@ def detect_wake_word(webm_path):
     # Check if file exists and has content
     if not os.path.exists(webm_path) or os.path.getsize(webm_path) < 100:
         print("[WAKE WORD] Audio file too small or missing")
-        return False
+        return (False, None)
     
     # Convert WebM to WAV in-memory using ffmpeg stdin/stdout
     # ffmpeg -i pipe:0 -ar 16000 -ac 1 -c:a pcm_s16le -f wav pipe:1
@@ -55,7 +55,7 @@ def detect_wake_word(webm_path):
     except subprocess.TimeoutExpired:
         p.kill()
         print("[WAKE WORD] FFmpeg conversion timed out")
-        return False
+        return (False, None)
 
     if p.returncode != 0 or not wav_bytes:
         try:
@@ -63,22 +63,22 @@ def detect_wake_word(webm_path):
         except:
             err_text = ""
         print(f"[WAKE WORD] FFmpeg error: {err_text}")
-        return False
+        return (False, None)
 
     if len(wav_bytes) < 200:
         print("[WAKE WORD] WAV bytes too small")
-        return False
+        return (False, None)
 
     try:
         # First, try local Vosk detector if model available and enabled
         vosk_enabled = os.getenv("VOSK_ENABLE", "1") != "0"
         model_available = load_vosk_model() is not None
-            if vosk_enabled and model_available:
+        if vosk_enabled and model_available:
             try:
                 vk = detect_keywords_in_wav_bytes(wav_bytes, keywords=("studio",))
                 if vk is True:
                     print("[WAKE WORD] Vosk detected wake-word 'studio'")
-                    return True
+                    return (True, None)
                 elif vk is False:
                     print("[WAKE WORD] Vosk processed audio; no keyword detected")
                     # continue to cloud ASR fallback
@@ -99,13 +99,27 @@ def detect_wake_word(webm_path):
             transcript_lower = transcript.lower().strip()
             wake_words = ["studio", "hey studio", "hello studio", "hi studio", "ok studio"]
             print(f"[WAKE WORD] Checking transcript: '{transcript}'")
+            
+            # Check for exact wake word matches
             for wake_word in wake_words:
                 if wake_word in transcript_lower:
                     print(f"[WAKE WORD] DETECTED: '{wake_word}' in '{transcript}'")
                     return True
-            if transcript_lower == "studio" or transcript_lower.endswith(" studio"):
-                print(f"[WAKE WORD] PARTIAL MATCH: '{transcript}'")
+            
+            # Check for studio at start or end of transcript
+            if (transcript_lower.startswith("studio") or 
+                transcript_lower.endswith("studio") or 
+                transcript_lower == "studio"):
+                print(f"[WAKE WORD] STUDIO DETECTED: '{transcript}'")
                 return True
+            
+            # Check for similar sounding words that might be misheard
+            similar_words = ["study", "stupid", "stereo", "steady"]
+            for similar in similar_words:
+                if similar in transcript_lower and len(transcript_lower) <= len(similar) + 2:
+                    print(f"[WAKE WORD] SIMILAR WORD DETECTED (treating as studio): '{transcript}'")
+                    return True
+            
             print(f"[WAKE WORD] NOT DETECTED in: '{transcript}'")
             return False
 
@@ -147,13 +161,27 @@ def detect_wake_word(webm_path):
                 # reuse same check logic
                 transcript_lower = result.lower().strip()
                 wake_words = ["studio", "hey studio", "hello studio", "hi studio", "ok studio"]
+                
+                # Check for exact wake word matches
                 for wake_word in wake_words:
                     if wake_word in transcript_lower:
                         print(f"[WAKE WORD] DETECTED: '{wake_word}' in '{result}'")
                         return (True, None)
-                if transcript_lower == "studio" or transcript_lower.endswith(" studio"):
-                    print(f"[WAKE WORD] PARTIAL MATCH: '{result}'")
+                
+                # Check for studio at start or end of transcript
+                if (transcript_lower.startswith("studio") or 
+                    transcript_lower.endswith("studio") or 
+                    transcript_lower == "studio"):
+                    print(f"[WAKE WORD] STUDIO DETECTED: '{result}'")
                     return (True, None)
+                
+                # Check for similar sounding words
+                similar_words = ["study", "stupid", "stereo", "steady"]
+                for similar in similar_words:
+                    if similar in transcript_lower and len(transcript_lower) <= len(similar) + 2:
+                        print(f"[WAKE WORD] SIMILAR WORD DETECTED (treating as studio): '{result}'")
+                        return (True, None)
+                
                 print(f"[WAKE WORD] NOT DETECTED in: '{result}'")
                 return (False, None)
     except Exception as e:

@@ -63,6 +63,17 @@ def generate_reply(user_text):
     
     text = user_text.lower().strip()
     
+    # Handle wake word commands - remove "studio" from the beginning
+    wake_word_patterns = ["studio", "hey studio", "hello studio", "hi studio", "ok studio"]
+    for wake_word in wake_word_patterns:
+        if text.startswith(wake_word):
+            # Remove wake word and any following comma/pause
+            text = text[len(wake_word):].strip()
+            text = text.lstrip(',').strip()  # Remove leading comma if present
+            if not text:  # If only wake word was said
+                return "Yes? How can I help you?"
+            break
+    
     # Personal questions about creator
     creator_names = ["yash", "yash shay", "yash sahai", "yash sahay", "prem"]
     if any(name in text for name in creator_names):

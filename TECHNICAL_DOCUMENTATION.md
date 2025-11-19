@@ -40,7 +40,7 @@ STUDIO follows a **client-server architecture** with a Flask backend and JavaScr
 
 ## Backend Code Walkthrough
 
-### 1. Main Server (`app.py`)
+### 1. Main Server (`core/app.py`)
 
 **Purpose**: Central Flask server handling all HTTP endpoints and routing
 
@@ -60,7 +60,10 @@ from dotenv import load_dotenv  # Environment variable management
 # Lines 14-20: Application Setup
 app = Flask(__name__)
 CORS(app)  # Enable all origins for development
-load_dotenv()  # Load .env file
+# The server loads environment variables from `backend/config/.env` at startup
+from dotenv import load_dotenv
+import os
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', '.env'))
 ```
 
 **Scalability Consideration**: In production, restrict CORS to specific domains
@@ -118,16 +121,30 @@ elif isinstance(reply_result, dict) and reply_result.get("type") == "shutdown":
 
 **Purpose**: Continuous wake word detection
 
+Notes:
+- The `detect_wake_word` function now returns a tuple `(detected, job_id)` where `detected` is `True|False|None` and `job_id` is present when the backend queued an async cloud transcription job.
+- When `WAKE_WORD_ASYNC=1` the endpoint may return a `job_id` that you can poll with `GET /transcription/<job_id>` to retrieve the final transcript and detection result.
+
 ```python
-# Lines 190-210: Wake Word Processing
-wake_word_detected = detect_wake_word(webm_path)
-return jsonify({"ok": True, "wake_word_detected": wake_word_detected})
+# Example response shapes from `/wake-word`:
+# 1) Immediate Vosk detection:
+#    {"ok": true, "wake_word_detected": true}
+# 2) No detection, async cloud transcription queued:
+#    {"ok": true, "wake_word_detected": null, "job_id": "..."}
+# 3) Throttled / not detected:
+#    {"ok": true, "wake_word_detected": false}
 ```
 
 **Why Separate Endpoint**: 
 - Lighter processing for continuous listening
 - Different error handling requirements
 - Optimized for speed over accuracy
+
+**Polling Async Results**:
+Use `GET /transcription/<job_id>` to check status. Returns:
+```json
+{"ok": true, "job": {"status":"pending|done|error", "result": <text|null>, "error": <msg|null>}}
+```
 
 ---
 

@@ -337,9 +337,9 @@ class STUDIOAssistant {
                         if (this.wakeWordActive) {
                             this.wakeWordRecorder.start();
                         }
-                    }, 100);
+                    }, 50);
                 }
-            }, 2000);
+            }, 1500);
 
         } catch (error) {
             console.error('Error starting wake word listening:', error);
@@ -380,13 +380,12 @@ class STUDIOAssistant {
             const data = await response.json();
 
             if (data.wake_word_detected) {
-                this.addMessage('System', 'Wake word detected!', 'bot');
-                this.voiceStatus.textContent = 'Wake word detected!';
-                this.reactorCore.style.animation = 'recordingPulse 0.5s infinite';
+                this.addMessage('System', '🎯 "Studio" detected! Listening for command...', 'bot');
+                this.voiceStatus.textContent = '🎯 Wake word detected! Speak your command...';
+                this.reactorCore.style.animation = 'recordingPulse 0.3s infinite';
                 
-                setTimeout(() => {
-                    this.startCommandRecording();
-                }, 200);
+                // Immediately start command recording
+                this.startCommandRecording();
             }
 
         } catch (error) {
@@ -415,13 +414,13 @@ class STUDIOAssistant {
             };
 
             this.commandRecorder.start();
-            this.voiceStatus.textContent = 'Listening for command... (3 seconds)';
+            this.voiceStatus.textContent = 'Listening for command... (4 seconds)';
             
             setTimeout(() => {
                 if (this.commandRecorder && this.commandRecorder.state === 'recording') {
                     this.commandRecorder.stop();
                 }
-            }, 3000);
+            }, 4000);
 
         } catch (error) {
             console.error('Error starting command recording:', error);

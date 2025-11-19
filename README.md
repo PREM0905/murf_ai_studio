@@ -37,9 +37,11 @@ NEWS_API_KEY=your_newsapi_key
 **Note**: Weather service uses free wttr.in API (no key required)
 
 ### 3. Start the Server
-```bash
-python app.py
+From thTR4e project root run the backend server (PowerShell / Windows):
+```powershell
+python .\backend\core\app.py
 ```
+The server loads environment variables from `backend/config/.env`.
 
 ### 4. Open Frontend
 Open `frontend/index.html` in your browser or run:
@@ -52,7 +54,8 @@ start index.html
 
 - `POST /asr` - Voice recognition and processing
 - `POST /text` - Text input with optional TTS
-- `POST /wake-word` - Wake word detection
+- `POST /wake-word` - Wake word detection (may return `job_id` when async)
+- `GET /transcription/<job_id>` - Query status/result for an async transcription submitted by `/wake-word`
 - `POST /test` - Simple test endpoint
 
 ## Usage Examples
@@ -178,6 +181,133 @@ STUDIO_IITB/
 **Navigation/Music not opening**: Check browser popup settings and allow popups
 **Search not redirecting**: Check popup blocker settings
 **Shutdown not working**: Try "Bye bye Studio" or "Shutdown Studio"
+
+## Technical Architecture
+
+### Backend Components
+
+**Flask Server (app.py)**
+- Main application server handling HTTP requests
+- Endpoints: `/asr`, `/text`, `/test`
+- Audio processing and response generation
+- TTS integration with optional audio output
+
+**Assistant Logic (simple_assistant.py)**
+- Core response generation engine
+- Pattern matching for weather, news, navigation
+- Direct API calls to wttr.in and NewsAPI
+- Navigation object responses for frontend redirect
+
+**Enhanced Assistant (assistant_logic.py)**
+- OpenAI GPT-4o-mini integration with function calling
+- Dynamic tool selection for weather and news
+- Response caching for performance
+- Math operations and entertainment features
+
+**Speech Recognition (asr_api.py)**
+- AssemblyAI integration for voice-to-text
+- Audio file upload and processing
+- Real-time transcription handling
+
+**Text-to-Speech (murf_api.py)**
+- Murf AI integration for speech synthesis
+- Audio generation and streaming
+- Voice customization options
+
+### Frontend Components
+
+**Main Interface (index.html)**
+- Dual-mode UI: voice recording and text input
+- Microphone controls and audio visualization
+- TTS toggle and response display
+- Reactor-style design with animations
+
+**JavaScript Logic (dual_script.js)**
+- Audio recording using MediaRecorder API
+- Form submission handling for text input
+- Navigation redirect processing with window.open()
+- Response parsing and UI updates
+
+**Styling (dual_style.css)**
+- Reactor-themed interface design
+- Responsive layout and animations
+- Button states and visual feedback
+
+### API Integration Details
+
+**Weather Service (wttr.in)**
+```python
+url = f"https://wttr.in/{city}?format=%C+%t+%h+%w"
+# Returns: condition, temperature, humidity, wind
+```
+
+**News Service (NewsAPI)**
+```python
+url = f"https://newsapi.org/v2/everything?q={query}&apiKey={api_key}"
+# Returns: articles with title, description, url
+```
+
+**Navigation Response Format**
+```python
+{
+    "type": "navigation",
+    "message": "Opening Google Maps...",
+    "redirect_url": "https://www.google.com/maps/search/destination",
+    "destination": "destination_name"
+}
+```
+
+### Data Flow
+
+1. **Voice Input**: Audio → AssemblyAI → Text → Assistant → Response
+2. **Text Input**: Text → Assistant → Response → Optional TTS
+3. **Navigation**: Request → Pattern Match → Navigation Object → Frontend Redirect
+4. **Weather**: City Extract → wttr.in API → Formatted Response
+5. **News**: Query Extract → NewsAPI → Article List → Summary
+
+### Error Handling
+
+- **API Failures**: Graceful degradation with fallback responses
+- **Network Issues**: Offline assistant mode available
+- **Audio Errors**: User feedback and retry mechanisms
+- **Invalid Requests**: Clear error messages and suggestions
+
+### Performance Optimizations
+
+- **Response Caching**: LRU cache for frequent queries
+- **Async Processing**: Non-blocking API calls
+- **Minimal Dependencies**: Lightweight library selection
+- **Frontend Optimization**: Efficient DOM manipulation
+
+### Security Considerations
+
+- **API Key Protection**: Environment variables only
+- **Input Validation**: Sanitized user inputs
+- **CORS Handling**: Proper cross-origin policies
+- **Audio Privacy**: No persistent audio storage
+
+## Development Guide
+
+### Adding New Features
+
+1. **Pattern Recognition**: Add keywords to `simple_assistant.py`
+2. **API Integration**: Create new function in assistant logic
+3. **Frontend Handling**: Update `dual_script.js` for special responses
+4. **Testing**: Add test cases to `test_simple.py`
+
+### Debugging
+
+- **Server Logs**: Check console output for API errors
+- **Network Tab**: Monitor API requests in browser
+- **Audio Issues**: Verify microphone permissions
+- **Response Format**: Validate JSON structure for navigation
+
+### Deployment
+
+- **Local**: Flask development server (port 5000)
+- **Production**: WSGI server (Gunicorn recommended)
+- **Environment**: Set API keys in production environment
+- **Dependencies**: Install from requirements.txt
 
 ## License
 
