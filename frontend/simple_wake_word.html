@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Wake Word Test</title>
+</head>
+<body>
+    <h1>Simple Wake Word Test</h1>
+    <button id="startBtn">Start Listening</button>
+    <button id="stopBtn">Stop Listening</button>
+    <div id="status">Click Start to begin</div>
+    <div id="messages"></div>
+
+    <script>
+        let mediaRecorder;
+        let isListening = false;
+        let stream;
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const messages = document.getElementById('messages');
+
+        startBtn.onclick = async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                startContinuousListening();
+                status.textContent = 'Listening for "Studio"...';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            } catch (error) {
+                status.textContent = 'Microphone access denied';
+            }
+        };
+
+        stopBtn.onclick = () => {
+            stopListening();
+            status.textContent = 'Stopped';
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        };
+
+        function startContinuousListening() {
+            if (!stream) return;
+
+            mediaRecorder = new MediaRecorder(stream);
+            let chunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                chunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+                chunks = [];
+
+                if (audioBlob.size > 1000) {
+                    await checkWakeWord(audioBlob);
+                }
+
+                // Continue listening if still active
+                if (isListening) {
+                    setTimeout(() => {
+                        if (isListening) {
+                            startContinuousListening();
+                        }
+                    }, 500);
+                }
+            };
+
+            mediaRecorder.start();
+            isListening = true;
+
+            // Stop and process every 3 seconds
+            setTimeout(() => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }, 3000);
+        }
+
+        async function checkWakeWord(audioBlob) {
+            try {
+                const formData = new FormData();
+                formData.append('audio', audioBlob);
+
+                const response = await fetch('http://127.0.0.1:5000/wake-word', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                console.log('Wake word response:', data);
+
+                if (data.wake_word_detected) {
+                    addMessage('WAKE WORD DETECTED! Listening for command...');
+                    status.textContent = 'Wake word detected! Say your command...';
+                    
+                    // Record command
+                    setTimeout(() => {
+                        recordCommand();
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('Wake word check error:', error);
+            }
+        }
+
+        function recordCommand() {
+            const commandRecorder = new MediaRecorder(stream);
+            let commandChunks = [];
+
+            commandRecorder.ondataavailable = (event) => {
+                commandChunks.push(event.data);
+            };
+
+            commandRecorder.onstop = async () => {
+                const audioBlob = new Blob(commandChunks, { type: 'audio/webm' });
+                await processCommand(audioBlob);
+                
+                // Resume wake word listening
+                status.textContent = 'Listening for "Studio"...';
+            };
+
+            commandRecorder.start();
+            
+            // Record for 4 seconds
+            setTimeout(() => {
+                commandRecorder.stop();
+            }, 4000);
+        }
+
+        async function processCommand(audioBlob) {
+            try {
+                const formData = new FormData();
+                formData.append('audio', audioBlob);
+
+                const response = await fetch('http://127.0.0.1:5000/asr', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.ok) {
+                    addMessage(`You: ${data.transcript}`);
+                    addMessage(`STUDIO: ${data.reply}`);
+                    
+                    // Handle redirects
+                    if (data.navigation && data.navigation.redirect_url) {
+                        setTimeout(() => {
+                            window.open(data.navigation.redirect_url, '_blank');
+                        }, 1000);
+                    } else if (data.search && data.search.redirect_url) {
+                        setTimeout(() => {
+                            window.open(data.search.redirect_url, '_blank');
+                        }, 1000);
+                    }
+                } else {
+                    addMessage(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                addMessage(`Command error: ${error.message}`);
+            }
+        }
+
+        function stopListening() {
+            isListening = false;
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function addMessage(text) {
+            const div = document.createElement('div');
+            div.textContent = `${new Date().toLocaleTimeString()}: ${text}`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+    </script>
+</body>
+</html>

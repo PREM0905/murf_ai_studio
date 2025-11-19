@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STUDIO Music Player</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00d4ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+            margin-bottom: 10px;
+        }
+        .song-info {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .song-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        .song-artist {
+            font-size: 1.2rem;
+            color: #7fb3d3;
+        }
+        .player-container {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .spotify-player {
+            width: 100%;
+            height: 380px;
+            border-radius: 12px;
+            border: none;
+        }
+        .youtube-player {
+            width: 100%;
+            height: 315px;
+            border-radius: 12px;
+            border: none;
+        }
+        .loading {
+            font-size: 1.2rem;
+            margin: 20px 0;
+        }
+        .error {
+            color: #ff4444;
+            font-size: 1.1rem;
+            margin: 20px 0;
+        }
+        .platform-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 25px;
+            color: #00d4ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background: #00d4ff;
+            color: #0a0a0a;
+        }
+        .tab-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+        .platform-content {
+            display: none;
+        }
+        .platform-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 STUDIO Music Player</h1>
+        </div>
+        
+        <div class="song-info" id="songInfo">
+            <div class="loading">Loading song information...</div>
+        </div>
+        
+        <div class="platform-tabs">
+            <button class="tab-btn active" onclick="switchPlatform('spotify')">Spotify</button>
+            <button class="tab-btn" onclick="switchPlatform('youtube')">YouTube</button>
+        </div>
+        
+        <div class="platform-content active" id="spotify-content">
+            <div class="player-container">
+                <div class="loading" id="spotifyLoading">Loading Spotify player...</div>
+                <iframe class="spotify-player" id="spotifyPlayer" style="display:none;"></iframe>
+            </div>
+        </div>
+        
+        <div class="platform-content" id="youtube-content">
+            <div class="player-container">
+                <div class="loading" id="youtubeLoading">Loading YouTube player...</div>
+                <iframe class="youtube-player" id="youtubePlayer" style="display:none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const songQuery = urlParams.get('song');
+        const spotifyUrl = urlParams.get('spotify');
+        const youtubeId = urlParams.get('youtube');
+        const songTitle = urlParams.get('title');
+        const artist = urlParams.get('artist');
+
+        // Update song info
+        if (songTitle && artist) {
+            document.getElementById('songInfo').innerHTML = `
+                <div class="song-title">${decodeURIComponent(songTitle)}</div>
+                <div class="song-artist">by ${decodeURIComponent(artist)}</div>
+            `;
+        } else if (songQuery) {
+            document.getElementById('songInfo').innerHTML = `
+                <div class="song-title">${decodeURIComponent(songQuery)}</div>
+            `;
+        }
+
+        // Load Spotify player
+        if (spotifyUrl) {
+            setTimeout(() => {
+                const spotifyPlayer = document.getElementById('spotifyPlayer');
+                spotifyPlayer.src = decodeURIComponent(spotifyUrl);
+                spotifyPlayer.style.display = 'block';
+                document.getElementById('spotifyLoading').style.display = 'none';
+            }, 1000);
+        } else {
+            document.getElementById('spotifyLoading').innerHTML = '<div class="error">Spotify not available for this song</div>';
+        }
+
+        // Load YouTube player
+        if (youtubeId) {
+            setTimeout(() => {
+                const youtubePlayer = document.getElementById('youtubePlayer');
+                youtubePlayer.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1`;
+                youtubePlayer.style.display = 'block';
+                document.getElementById('youtubeLoading').style.display = 'none';
+            }, 1500);
+        } else {
+            document.getElementById('youtubeLoading').innerHTML = '<div class="error">YouTube not available for this song</div>';
+        }
+
+        function switchPlatform(platform) {
+            // Update tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.platform-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${platform}-content`).classList.add('active');
+        }
+    </script>
+</body>
+</html>

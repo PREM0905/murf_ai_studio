@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STUDIO - Voice & Text Assistant</title>
+    <link rel="stylesheet" href="dual_style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>STUDIO</h1>
+            <p>Your Intelligent Voice & Text Assistant</p>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+            <button id="voiceMode" class="mode-btn active">🎤 Voice Mode</button>
+            <button id="textMode" class="mode-btn">⌨️ Text Mode</button>
+        </div>
+
+        <!-- Voice Interface -->
+        <div id="voiceInterface" class="interface-panel">
+            <div class="reactor-container">
+                <div class="reactor-core" id="reactorCore">
+                    <div class="inner-ring"></div>
+                    <div class="middle-ring"></div>
+                    <div class="outer-ring"></div>
+                    <button id="micButton" class="mic-button">🎤</button>
+                </div>
+            </div>
+            <div class="status" id="voiceStatus">Click microphone to speak</div>
+        </div>
+
+        <!-- Text Interface -->
+        <div id="textInterface" class="interface-panel hidden">
+            <div class="chat-container">
+                <div class="input-section">
+                    <input type="text" id="textInput" placeholder="Type your message here..." />
+                    <button id="sendButton">Send</button>
+                </div>
+                <div class="tts-controls">
+                    <label>
+                        <input type="checkbox" id="enableTTS" checked> Enable Text-to-Speech
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Panel -->
+        <div class="messages-panel" id="messagesPanel">
+            <div class="message bot-message">
+                <strong>STUDIO:</strong> Hello! I'm ready to assist you. Choose voice or text mode above.
+            </div>
+        </div>
+    </div>
+
+    <script src="dual_script.js"></script>
+</body>
+</html>

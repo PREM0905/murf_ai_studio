@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STUDIO Deezer Player</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00d4ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .player-container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+            margin-bottom: 10px;
+        }
+        .track-info {
+            margin-bottom: 30px;
+        }
+        .album-cover {
+            width: 200px;
+            height: 200px;
+            border-radius: 15px;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+        .track-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+        .track-artist {
+            font-size: 1.2rem;
+            color: #7fb3d3;
+            margin-bottom: 20px;
+        }
+        .audio-player {
+            width: 100%;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            background: #00d4ff;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #0099cc;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
+        .status {
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+        .loading {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="header">
+            <h1>🎵 Now Playing</h1>
+        </div>
+        
+        <div class="track-info" id="trackInfo">
+            <div class="loading">Loading track information...</div>
+        </div>
+        
+        <div class="status" id="status">
+            <div class="loading">Preparing audio player...</div>
+        </div>
+        
+        <div class="controls" id="controls" style="display:none;">
+            <a href="#" class="btn" id="fullTrackBtn">Play Full Track on Deezer</a>
+            <a href="#" class="btn" id="youtubeBtn">Search on YouTube</a>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const song = urlParams.get('song');
+        const trackId = urlParams.get('track_id');
+        const title = urlParams.get('title');
+        const artist = urlParams.get('artist');
+        const previewUrl = urlParams.get('preview_url');
+        const deezerUrl = urlParams.get('deezer_url');
+        const cover = urlParams.get('cover');
+
+        // Update track info
+        if (title && artist) {
+            document.getElementById('trackInfo').innerHTML = `
+                <img src="${decodeURIComponent(cover)}" alt="Album Cover" class="album-cover">
+                <div class="track-title">${decodeURIComponent(title)}</div>
+                <div class="track-artist">by ${decodeURIComponent(artist)}</div>
+            `;
+        } else if (song) {
+            document.getElementById('trackInfo').innerHTML = `
+                <div class="track-title">${decodeURIComponent(song)}</div>
+            `;
+        }
+
+        // Setup audio player with preview
+        if (previewUrl && previewUrl !== 'null') {
+            setTimeout(() => {
+                const audioHtml = `
+                    <audio class="audio-player" controls autoplay>
+                        <source src="${decodeURIComponent(previewUrl)}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                `;
+                
+                document.getElementById('status').innerHTML = `
+                    <p>🎵 Playing 30-second preview</p>
+                    ${audioHtml}
+                `;
+                
+                // Show controls
+                document.getElementById('controls').style.display = 'flex';
+                
+                // Setup control buttons
+                if (deezerUrl && deezerUrl !== 'null') {
+                    document.getElementById('fullTrackBtn').href = decodeURIComponent(deezerUrl);
+                }
+                
+                const youtubeSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent(song || title + ' ' + artist)}`;
+                document.getElementById('youtubeBtn').href = youtubeSearch;
+                
+            }, 1000);
+        } else {
+            // No preview available, show fallback
+            setTimeout(() => {
+                document.getElementById('status').innerHTML = `
+                    <p>Preview not available</p>
+                    <p>Use the buttons below to play the full track</p>
+                `;
+                
+                document.getElementById('controls').style.display = 'flex';
+                
+                if (deezerUrl && deezerUrl !== 'null') {
+                    document.getElementById('fullTrackBtn').href = decodeURIComponent(deezerUrl);
+                }
+                
+                const youtubeSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent(song || title + ' ' + artist)}`;
+                document.getElementById('youtubeBtn').href = youtubeSearch;
+                
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

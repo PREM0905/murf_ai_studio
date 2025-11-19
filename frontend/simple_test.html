@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test STUDIO</title>
+</head>
+<body>
+    <h1>STUDIO Test</h1>
+    <input type="text" id="input" placeholder="Type message">
+    <button onclick="send()">Send</button>
+    <div id="output"></div>
+
+    <script>
+        async function send() {
+            const message = document.getElementById('input').value;
+            try {
+                const response = await fetch('http://127.0.0.1:5000/text', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: message})
+                });
+                const data = await response.json();
+                document.getElementById('output').innerHTML = data.reply || data.error;
+            } catch (e) {
+                document.getElementById('output').innerHTML = 'Error: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>

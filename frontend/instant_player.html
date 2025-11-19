@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STUDIO Instant Player</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00d4ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+            margin-bottom: 10px;
+        }
+        .song-info {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .loading {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .player-frame {
+            width: 100%;
+            height: 166px;
+            border: none;
+            border-radius: 10px;
+            background: #000;
+        }
+        .youtube-frame {
+            width: 100%;
+            height: 315px;
+            border: none;
+            border-radius: 10px;
+        }
+        .fallback {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #00d4ff;
+            color: #0a0a0a;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #0099cc;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Now Playing</h1>
+        </div>
+        
+        <div class="song-info" id="songInfo">
+            <div class="loading">Loading music...</div>
+        </div>
+        
+        <div id="playerContainer">
+            <div class="loading">Preparing player...</div>
+        </div>
+        
+        <div class="fallback" id="fallback" style="display:none;">
+            <p>Having trouble with autoplay?</p>
+            <a href="#" class="btn" id="manualPlay">Click to Play</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const song = urlParams.get('song');
+        const soundcloudUrl = urlParams.get('soundcloud');
+        const youtubeId = urlParams.get('youtube');
+        const artist = urlParams.get('artist');
+        const track = urlParams.get('track');
+
+        // Update song info
+        if (artist && track) {
+            document.getElementById('songInfo').innerHTML = `
+                <h2>${decodeURIComponent(track)}</h2>
+                <p>by ${decodeURIComponent(artist)}</p>
+            `;
+        } else if (song) {
+            document.getElementById('songInfo').innerHTML = `
+                <h2>${decodeURIComponent(song)}</h2>
+            `;
+        }
+
+        // Try SoundCloud first (better autoplay)
+        if (soundcloudUrl) {
+            setTimeout(() => {
+                document.getElementById('playerContainer').innerHTML = `
+                    <iframe class="player-frame" src="${decodeURIComponent(soundcloudUrl)}" 
+                            allow="autoplay"></iframe>
+                `;
+                
+                // Show fallback after 3 seconds if needed
+                setTimeout(() => {
+                    document.getElementById('fallback').style.display = 'block';
+                    document.getElementById('manualPlay').href = decodeURIComponent(soundcloudUrl).replace('w.soundcloud.com/player/?url=', '').split('&')[0];
+                }, 3000);
+            }, 1000);
+        }
+        // Fallback to YouTube
+        else if (youtubeId) {
+            setTimeout(() => {
+                document.getElementById('playerContainer').innerHTML = `
+                    <iframe class="youtube-frame" 
+                            src="https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=0" 
+                            allow="autoplay; encrypted-media"></iframe>
+                `;
+                
+                setTimeout(() => {
+                    document.getElementById('fallback').style.display = 'block';
+                    document.getElementById('manualPlay').href = `https://music.youtube.com/watch?v=${youtubeId}`;
+                    document.getElementById('manualPlay').textContent = 'Open in YouTube Music';
+                }, 3000);
+            }, 1000);
+        }
+        // No player available
+        else {
+            document.getElementById('playerContainer').innerHTML = `
+                <div class="fallback">
+                    <p>No player available for this song</p>
+                    <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(song || 'music')}" 
+                       class="btn" target="_blank">Search YouTube</a>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

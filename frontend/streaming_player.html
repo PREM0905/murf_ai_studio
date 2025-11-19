@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STUDIO Streaming Player</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00d4ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .player-container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            font-size: 2rem;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+            margin-bottom: 30px;
+        }
+        .track-info {
+            margin-bottom: 30px;
+        }
+        .album-cover {
+            width: 250px;
+            height: 250px;
+            border-radius: 15px;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+            object-fit: cover;
+        }
+        .track-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+        .track-artist {
+            font-size: 1.2rem;
+            color: #7fb3d3;
+            margin-bottom: 20px;
+        }
+        .audio-player {
+            width: 100%;
+            margin: 20px 0;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .source-info {
+            font-size: 0.9rem;
+            color: #7fb3d3;
+            margin-top: 15px;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #00d4ff;
+            color: #0a0a0a;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #0099cc;
+            transform: scale(1.05);
+        }
+        .loading {
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .play-indicator {
+            font-size: 1.1rem;
+            color: #00ff41;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="header">
+            <h1>🎵 Now Streaming</h1>
+        </div>
+        
+        <div class="track-info" id="trackInfo">
+            <div class="loading">Loading track...</div>
+        </div>
+        
+        <div id="playerSection">
+            <div class="loading">Preparing audio stream...</div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const song = urlParams.get('song');
+        const title = urlParams.get('title');
+        const artist = urlParams.get('artist');
+        const streamUrl = urlParams.get('stream_url');
+        const cover = urlParams.get('cover');
+        const source = urlParams.get('source');
+
+        // Update track info
+        if (title && artist) {
+            document.getElementById('trackInfo').innerHTML = `
+                ${cover && cover !== 'null' ? `<img src="${decodeURIComponent(cover)}" alt="Album Cover" class="album-cover">` : ''}
+                <div class="track-title">${decodeURIComponent(title)}</div>
+                <div class="track-artist">by ${decodeURIComponent(artist)}</div>
+                ${source ? `<div class="source-info">Streaming from ${decodeURIComponent(source)}</div>` : ''}
+            `;
+        } else if (song) {
+            document.getElementById('trackInfo').innerHTML = `
+                <div class="track-title">${decodeURIComponent(song)}</div>
+                ${source ? `<div class="source-info">Streaming from ${decodeURIComponent(source)}</div>` : ''}
+            `;
+        }
+
+        // Setup audio player
+        if (streamUrl && streamUrl !== 'null') {
+            setTimeout(() => {
+                document.getElementById('playerSection').innerHTML = `
+                    <div class="play-indicator">🎵 Auto-playing now...</div>
+                    <audio class="audio-player" controls autoplay loop>
+                        <source src="${decodeURIComponent(streamUrl)}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <div class="controls">
+                        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(song || title + ' ' + artist)}" 
+                           class="btn" target="_blank">Search on YouTube</a>
+                    </div>
+                `;
+            }, 1000);
+        } else {
+            // No stream available
+            setTimeout(() => {
+                document.getElementById('playerSection').innerHTML = `
+                    <p>Stream not available</p>
+                    <div class="controls">
+                        <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(song || 'music')}" 
+                           class="btn" target="_blank">Search on YouTube</a>
+                    </div>
+                `;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

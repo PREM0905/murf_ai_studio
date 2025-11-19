@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Test</title>
+</head>
+<body>
+    <h1>STUDIO Network Test</h1>
+    <button onclick="testConnection()">Test Server Connection</button>
+    <div id="result"></div>
+
+    <script>
+        async function testConnection() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://127.0.0.1:5000/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: 'test connection'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.innerHTML = `<p style="color: green;">✅ Server is working!</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    result.innerHTML = `<p style="color: red;">❌ Server error: ${response.status}</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">❌ Network Error: ${error.message}</p>
+                <p>Common fixes:</p>
+                <ul>
+                    <li>Make sure Flask server is running on port 5000</li>
+                    <li>Check if Windows Firewall is blocking the connection</li>
+                    <li>Try opening http://127.0.0.1:5000 in your browser</li>
+                </ul>`;
+            }
+        }
+    </script>
+</body>
+</html>

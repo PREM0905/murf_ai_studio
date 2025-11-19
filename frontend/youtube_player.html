@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STUDIO Music Player</title>
+    <style>
+        body {
+            background: #000;
+            color: #00d4ff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        .loading {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .song-name {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">🎵 Loading Music...</div>
+    <div class="song-name" id="songName"></div>
+    <p>Redirecting to YouTube...</p>
+    
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('v');
+        const songName = urlParams.get('song');
+        
+        if (songName) {
+            document.getElementById('songName').textContent = `Playing: ${decodeURIComponent(songName)}`;
+        }
+        
+        if (videoId) {
+            // Redirect to YouTube with autoplay after 1 second
+            setTimeout(() => {
+                window.location.href = `https://www.youtube.com/watch?v=${videoId}&autoplay=1`;
+            }, 1000);
+        } else {
+            document.body.innerHTML = '<h2>Error: No video specified</h2>';
+        }
+    </script>
+</body>
+</html>

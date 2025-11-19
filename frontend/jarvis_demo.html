@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JARVIS — Advanced AI Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="bg"></div>
+
+  <div class="reactor-wrapper">
+      <div class="ring ring-outer">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="ring ring-middle"></div>
+
+      <div class="inner">
+        <div class="equalizer">
+          <div class="bar" style="--i:0"></div>
+          <div class="bar" style="--i:1"></div>
+          <div class="bar" style="--i:2"></div>
+          <div class="bar" style="--i:3"></div>
+          <div class="bar" style="--i:4"></div>
+        </div>
+
+        <button id="micBtn" class="mic">
+          <svg viewBox="0 0 24 24" width="36">
+            <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"></path>
+            <path d="M19 11v1a7 7 0 0 1-14 0v-1"></path>
+            <path d="M12 19v3"></path>
+          </svg>
+        </button>
+      </div>
+  </div>
+
+  <div class="ui">
+    <div id="status">JARVIS ONLINE</div>
+    <div id="messages">
+      <div class="message msg-bot">Good evening. JARVIS at your service. How may I assist you today?</div>
+      <div class="message msg-user">Voice Input Received</div>
+      <div class="message msg-bot">Directions from New York to Boston: Opening Google Maps for real-time navigation. <button class="maps-button" onclick="window.open('https://www.google.com/maps/dir/New York/Boston', '_blank')">Open Google Maps</button></div>
+      <div class="message msg-user">Voice Input Received</div>
+      <div class="message msg-bot">That sounds like 'Bohemian Rhapsody' by Queen.</div>
+      <div class="message msg-user">Voice Input Received</div>
+      <div class="message msg-bot">The current time is 7:45 PM. Weather in New York: Clear skies, 22°C.</div>
+    </div>
+  </div>
+
+  <script>
+    // Demo animation
+    const reactor = document.querySelector('.reactor-wrapper');
+    const status = document.getElementById('status');
+    
+    setInterval(() => {
+      reactor.classList.add('reacting');
+      status.innerText = 'PROCESSING REQUEST...';
+      
+      setTimeout(() => {
+        reactor.classList.remove('reacting');
+        status.innerText = 'JARVIS READY';
+      }, 2000);
+    }, 5000);
+  </script>
+</body>
+</html>

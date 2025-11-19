@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STUDIO Spotify Player</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00d4ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .player-container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            font-size: 2rem;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+            margin-bottom: 30px;
+        }
+        .spotify-embed {
+            width: 100%;
+            height: 380px;
+            border-radius: 12px;
+            border: none;
+            margin: 20px 0;
+        }
+        .fallback {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 15px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #1DB954;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #1ed760;
+            transform: scale(1.05);
+        }
+        .loading {
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="header">
+            <h1>🎵 Spotify Player</h1>
+        </div>
+        
+        <div id="playerContent">
+            <div class="loading">Loading Spotify player...</div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const song = urlParams.get('song');
+        const spotifyUri = urlParams.get('spotify_uri');
+        const trackId = urlParams.get('track_id');
+
+        // Create Spotify embed
+        if (trackId && trackId !== 'null') {
+            setTimeout(() => {
+                const embedUrl = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
+                
+                document.getElementById('playerContent').innerHTML = `
+                    <iframe class="spotify-embed" 
+                            src="${embedUrl}" 
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                            loading="lazy">
+                    </iframe>
+                `;
+            }, 1000);
+        } else {
+            // Fallback - search Spotify
+            setTimeout(() => {
+                const searchQuery = encodeURIComponent(song || 'music');
+                const spotifySearchUrl = `https://open.spotify.com/search/${searchQuery}`;
+                
+                document.getElementById('playerContent').innerHTML = `
+                    <div class="fallback">
+                        <p>Track not found on Spotify</p>
+                        <a href="${spotifySearchUrl}" class="btn" target="_blank">Search on Spotify</a>
+                        <a href="https://www.youtube.com/results?search_query=${searchQuery}" class="btn" target="_blank">Search on YouTube</a>
+                    </div>
+                `;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

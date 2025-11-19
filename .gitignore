@@ -1,0 +1,4 @@
+backend/__pycache__/
+backend/config/.env*
+backend/tests
+backend/integrations/models
